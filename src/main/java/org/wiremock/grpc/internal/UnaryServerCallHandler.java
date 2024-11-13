@@ -28,6 +28,7 @@ import com.google.protobuf.DynamicMessage;
 import io.grpc.Status;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
+import java.util.Arrays;
 import org.wiremock.grpc.dsl.WireMockGrpc;
 
 public class UnaryServerCallHandler extends BaseCallHandler
@@ -85,12 +86,16 @@ public class UnaryServerCallHandler extends BaseCallHandler
             return;
           }
 
-          DynamicMessage.Builder messageBuilder =
-              DynamicMessage.newBuilder(methodDescriptor.getOutputType());
-
-          final DynamicMessage response =
-              jsonMessageConverter.toMessage(resp.getBodyAsString(), messageBuilder);
-          responseObserver.onNext(response);
+          var bodyAsString = resp.getBodyAsString();
+          Arrays.stream(bodyAsString.split(WireMockGrpc.SPLIT_TAG))
+              .forEach(
+                  r -> {
+                    DynamicMessage.Builder messageBuilder =
+                        DynamicMessage.newBuilder(methodDescriptor.getOutputType());
+                    final DynamicMessage response =
+                        jsonMessageConverter.toMessage(r, messageBuilder);
+                    responseObserver.onNext(response);
+                  });
           responseObserver.onCompleted();
         },
         ServeEvent.of(wireMockRequest));
