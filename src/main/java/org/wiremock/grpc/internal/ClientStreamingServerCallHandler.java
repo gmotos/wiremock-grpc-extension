@@ -20,6 +20,7 @@ import static org.wiremock.grpc.dsl.GrpcResponseDefinitionBuilder.GRPC_STATUS_RE
 
 import com.github.tomakehurst.wiremock.common.Pair;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
+import com.github.tomakehurst.wiremock.http.Response;
 import com.github.tomakehurst.wiremock.http.StubRequestHandler;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.google.protobuf.Descriptors;
@@ -111,7 +112,7 @@ public class ClientStreamingServerCallHandler extends BaseCallHandler
                   DynamicMessage.newBuilder(methodDescriptor.getOutputType());
 
               final DynamicMessage response =
-                  jsonMessageConverter.toMessage(resp.getBodyAsString(), messageBuilder);
+                  jsonMessageConverter.toMessage(getFirstReply(resp), messageBuilder);
 
               responseStatus.set(WireMockGrpc.Status.OK);
               firstResponse.set(response);
@@ -142,5 +143,9 @@ public class ClientStreamingServerCallHandler extends BaseCallHandler
         }
       }
     };
+  }
+
+  private String getFirstReply(Response resp) {
+    return getReplies(resp.getBodyAsString()).findAny().orElse(null);
   }
 }

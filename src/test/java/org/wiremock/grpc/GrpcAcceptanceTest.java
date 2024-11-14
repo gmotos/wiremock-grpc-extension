@@ -39,6 +39,7 @@ import static org.wiremock.grpc.dsl.WireMockGrpc.json;
 import static org.wiremock.grpc.dsl.WireMockGrpc.jsonTemplate;
 import static org.wiremock.grpc.dsl.WireMockGrpc.message;
 import static org.wiremock.grpc.dsl.WireMockGrpc.messageAsAny;
+import static org.wiremock.grpc.dsl.WireMockGrpc.messages;
 import static org.wiremock.grpc.dsl.WireMockGrpc.method;
 
 import com.example.grpc.AnotherGreetingServiceGrpc;
@@ -288,6 +289,21 @@ public class GrpcAcceptanceTest {
             .willReturn(message(HelloResponse.newBuilder().setGreeting("Hi Tom"))));
 
     assertThat(greetingsClient.oneGreetingManyReplies("Tom"), hasItem("Hi Tom"));
+  }
+
+  @Test
+  void returnsStreamedResponseToUnaryRequestMultiple() {
+    mockGreetingService.stubFor(
+        method("oneGreetingManyReplies")
+            .willReturn(
+                messages(
+                    List.of(
+                        HelloResponse.newBuilder().setGreeting("Hi Tom"),
+                        HelloResponse.newBuilder().setGreeting("Hello Tom")))));
+
+    var result = greetingsClient.oneGreetingManyReplies("Tom");
+    assertThat(result, hasItem("Hi Tom"));
+    assertThat(result, hasItem("Hello Tom"));
   }
 
   @Test

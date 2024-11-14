@@ -20,11 +20,15 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.google.protobuf.MessageOrBuilder;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.wiremock.annotations.Beta;
 import org.wiremock.grpc.internal.JsonMessageUtils;
 
 @Beta(justification = "Incubating extension: https://github.com/wiremock/wiremock/issues/2383")
 public class WireMockGrpc {
+
+  public static final String SPLIT_TAG = "\n<wiremock:grpc:split/>\n";
 
   private WireMockGrpc() {}
 
@@ -43,6 +47,14 @@ public class WireMockGrpc {
 
   public static GrpcResponseDefinitionBuilder jsonTemplate(String json) {
     return new GrpcResponseDefinitionBuilder(Status.OK).withTemplatingEnabled(true).fromJson(json);
+  }
+
+  public static GrpcResponseDefinitionBuilder messages(List<MessageOrBuilder> messageOrBuilders) {
+    final String res =
+        messageOrBuilders.stream()
+            .map(JsonMessageUtils::toJson)
+            .collect(Collectors.joining(SPLIT_TAG));
+    return new GrpcResponseDefinitionBuilder(Status.OK).fromJson(res);
   }
 
   public static GrpcResponseDefinitionBuilder message(MessageOrBuilder messageOrBuilder) {

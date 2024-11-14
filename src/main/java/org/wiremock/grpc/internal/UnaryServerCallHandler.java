@@ -85,12 +85,16 @@ public class UnaryServerCallHandler extends BaseCallHandler
             return;
           }
 
-          DynamicMessage.Builder messageBuilder =
-              DynamicMessage.newBuilder(methodDescriptor.getOutputType());
-
-          final DynamicMessage response =
-              jsonMessageConverter.toMessage(resp.getBodyAsString(), messageBuilder);
-          responseObserver.onNext(response);
+          var bodyAsString = resp.getBodyAsString();
+          getReplies(bodyAsString)
+              .forEach(
+                  r -> {
+                    DynamicMessage.Builder messageBuilder =
+                        DynamicMessage.newBuilder(methodDescriptor.getOutputType());
+                    final DynamicMessage response =
+                        jsonMessageConverter.toMessage(r, messageBuilder);
+                    responseObserver.onNext(response);
+                  });
           responseObserver.onCompleted();
         },
         ServeEvent.of(wireMockRequest));

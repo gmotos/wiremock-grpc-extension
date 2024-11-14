@@ -17,6 +17,9 @@ package org.wiremock.grpc.internal;
 
 import com.github.tomakehurst.wiremock.http.StubRequestHandler;
 import com.google.protobuf.Descriptors;
+import java.util.Arrays;
+import java.util.stream.Stream;
+import org.wiremock.grpc.dsl.WireMockGrpc;
 
 public abstract class BaseCallHandler {
 
@@ -35,5 +38,9 @@ public abstract class BaseCallHandler {
     this.serviceDescriptor = serviceDescriptor;
     this.methodDescriptor = methodDescriptor;
     this.jsonMessageConverter = jsonMessageConverter;
+  }
+
+  protected Stream<String> getReplies(String bodyAsString) {
+    return Arrays.stream(bodyAsString.split(WireMockGrpc.SPLIT_TAG));
   }
 }
